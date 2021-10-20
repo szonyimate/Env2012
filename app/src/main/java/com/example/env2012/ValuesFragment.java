@@ -26,6 +26,7 @@ public class ValuesFragment extends Fragment {
     double shtmpr = 23.0;
     double shtrhslope = 1.0;
     double shttmpoffs = 0;
+    double shttmpslope = 1.0;
 
     Button startButton;
     GridLayout gridLayout;
@@ -75,6 +76,7 @@ public class ValuesFragment extends Fragment {
                     splitInput(inputDemo.get(stepper));
                     pressureTextView.setText(calculatePressure(splittedValues[0]));
                     humidityTextView.setText(calculateHumidity(splittedValues[1]));
+                    temp1TextView.setText(calculateTemperature(splittedValues[2]));
                     stepper++;
                 } else {
                     stepper = 0;
@@ -95,8 +97,8 @@ public class ValuesFragment extends Fragment {
 
     public void fillDemoList() {
         inputDemo.add("0C0AD7 050A 1983 70594C 700788_FFFFF6 704739");
-        inputDemo.add("0C0ACB 050A 1982 705946 7007BD 702744_FFFFE3");
-        inputDemo.add("0C0AE2 050A 1982_FFFFEA 7007E1 702782 70477B");
+        inputDemo.add("0BA3D9 050A 1911 705946 7007BD 702744_FFFFE3");
+        inputDemo.add("0BA3D5 050A 190F_FFFFEA 7007E1 702782 70477B");
         inputDemo.add("0C0AD7 050A 1983 70596A_FFFFF2 702783 704754");
         inputDemo.add("0C0AD4 0509 1984 705982 700839_FFFFE8 70478D");
         inputDemo.add("0C0ACC 050B 1982 705996 700884 7027C9_FFFFE3");
@@ -121,22 +123,32 @@ public class ValuesFragment extends Fragment {
     }
 
     public String calculatePressure(String hexValue){
-        double pressure = Math.round(Float.valueOf(Integer.parseInt(hexValue, 16))*0.98914);
+        int intValue = Integer.parseInt(hexValue, 16);
+        double pressure = Math.round(intValue*0.98914);
         pressure = (pressure*0.00000000011087363-0.026687718)*pressure+121756.66;
 
-        String pressureValue = String.valueOf((double)Math.round(pressure * 100000d) / 100000d);
+        intValue = (int) pressure;
 
-        return pressureValue;
+        return String.valueOf(intValue);
     }
 
     public String calculateHumidity(String hexValue){
         int intValue = Integer.parseInt(hexValue, 16);
-        double humidity = (-1.5955e-6 * intValue + 0.0367) * intValue - 2.0468;
+        double humidity = (0.000001595 * intValue + 0.0367) * intValue - 2.0468;
         humidity = (shtmpr - 25) * (0.01+ 0.00008 * intValue) + humidity;
         humidity = humidity * shtrhslope + shttmpoffs;
 
-        String humidityValue = String.valueOf((double)Math.round(humidity * 100000d) / 100000d);
+        String humidityValue = String.valueOf((double)Math.round(humidity * 100d) / 100d);
 
-        return humidityValue;
+        return String.valueOf(humidityValue);
+    }
+
+    public String calculateTemperature(String hexValue){
+        int intValue = Integer.parseInt(hexValue, 16);
+        double temp = (intValue/100-40.1) * shttmpslope + shttmpoffs;
+
+        String tempValue = String.valueOf((double)Math.round(temp * 100000d) / 100000d);
+
+        return tempValue;
     }
 }
