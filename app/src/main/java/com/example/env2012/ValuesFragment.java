@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,7 +26,13 @@ public class ValuesFragment extends Fragment {
     Button startButton;
     GridLayout gridLayout;
 
-    TextView currentView;
+    TextView pressureTextView;
+    TextView temp1TextView;
+    TextView temp2TextView;
+    TextView temp3TextView;
+    TextView temp4TextView;
+    TextView humidityTextView;
+    TextView huSensTTextView;
 
     CountDownTimer countDownTimer;
 
@@ -38,9 +45,17 @@ public class ValuesFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_values, parent, false);
 
         startButton = view.findViewById(R.id.startButton);
-        startButton.setOnClickListener(v -> startCalculations(currentView));
+        startButton.setOnClickListener(v -> startCalculations(pressureTextView));
 
         gridLayout = view.findViewById(R.id.gridLayout);
+
+        temp1TextView = view.findViewById(R.id.t1ValueTextView);
+        temp2TextView = view.findViewById(R.id.t2ValueTextView);
+        temp3TextView = view.findViewById(R.id.t3ValueTextView);
+        temp4TextView = view.findViewById(R.id.t4ValueTextView);
+        pressureTextView = view.findViewById(R.id.pressureValueTextView);
+        humidityTextView = view.findViewById(R.id.humidityValueTextView);
+        huSensTTextView = view.findViewById(R.id.husenstValueTextView);
         fillDemoList();
 
         return view;
@@ -54,14 +69,7 @@ public class ValuesFragment extends Fragment {
             public void onTick(long millisUntilFinished) {
                 if (stepper < inputDemo.size()){
                     splitInput(inputDemo.get(stepper));
-                    for (int j=0; j<7; j++){
-                        currentView = gridLayout.findViewWithTag(Integer.toString(j));
-                        if (j==0){
-                            calculatePressure(splittedValues[j]);
-                        } else {
-                            currentView.setText(splittedValues[j]);
-                        }
-                    }
+                    pressureTextView.setText(calculatePressure(splittedValues[0]));
                     stepper++;
                 } else {
                     stepper = 0;
@@ -108,8 +116,11 @@ public class ValuesFragment extends Fragment {
     }
 
     public String calculatePressure(String hexValue){
-        
+        double pressure = Math.round(Float.valueOf(Integer.parseInt(hexValue, 16))*0.98914);
+        pressure = (pressure*0.00000000011087363-0.026687718)*pressure+121756.66;
 
-        return "";
+        String pressureValue = String.valueOf((double)Math.round(pressure * 100000d) / 100000d);
+
+        return pressureValue;
     }
 }
