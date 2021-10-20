@@ -23,6 +23,10 @@ import java.util.List;
 
 public class ValuesFragment extends Fragment {
 
+    double shtmpr = 23.0;
+    double shtrhslope = 1.0;
+    double shttmpoffs = 0;
+
     Button startButton;
     GridLayout gridLayout;
 
@@ -70,6 +74,7 @@ public class ValuesFragment extends Fragment {
                 if (stepper < inputDemo.size()){
                     splitInput(inputDemo.get(stepper));
                     pressureTextView.setText(calculatePressure(splittedValues[0]));
+                    humidityTextView.setText(calculateHumidity(splittedValues[1]));
                     stepper++;
                 } else {
                     stepper = 0;
@@ -122,5 +127,16 @@ public class ValuesFragment extends Fragment {
         String pressureValue = String.valueOf((double)Math.round(pressure * 100000d) / 100000d);
 
         return pressureValue;
+    }
+
+    public String calculateHumidity(String hexValue){
+        int intValue = Integer.parseInt(hexValue, 16);
+        double humidity = (-1.5955e-6 * intValue + 0.0367) * intValue - 2.0468;
+        humidity = (shtmpr - 25) * (0.01+ 0.00008 * intValue) + humidity;
+        humidity = humidity * shtrhslope + shttmpoffs;
+
+        String humidityValue = String.valueOf((double)Math.round(humidity * 100000d) / 100000d);
+
+        return humidityValue;
     }
 }
