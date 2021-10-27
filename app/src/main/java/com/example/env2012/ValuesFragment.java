@@ -130,6 +130,9 @@ public class ValuesFragment extends Fragment {
                     humidityTextView.setText(calculateHumidity(splittedValues[1]));
                     huSensTTextView.setText(calculateShTemperature(splittedValues[2]));
                     temp1TextView.setText(calculateTemperature(0,splittedValues[3]));
+                    temp2TextView.setText(calculateTemperature(1,splittedValues[4]));
+                    temp3TextView.setText(calculateTemperature(2,splittedValues[5]));
+                    temp4TextView.setText(calculateTemperature(3,splittedValues[6]));
                     stepper++;
                 } else {
                     stepper = 0;
@@ -149,25 +152,25 @@ public class ValuesFragment extends Fragment {
     }
 
     public void fillDemoList() {
-        inputDemo.add("0C0AD7 050A 1983 70594C 700788_FFFFF6 704739");
-        inputDemo.add("0BA3D9 050A 1911 705946 7007BD 702744_FFFFE3");
-        inputDemo.add("0BA3D5 050A 190F_FFFFEA 7007E1 702782 70477B");
-        inputDemo.add("0C0AD7 050A 1983 70596A_FFFFF2 702783 704754");
-        inputDemo.add("0C0AD4 0509 1984 705982 700839_FFFFE8 70478D");
-        inputDemo.add("0C0ACC 050B 1982 705996 700884 7027C9_FFFFE3");
-        inputDemo.add("0C0AD9 050A 1984_FFFFF9 7008A3 7027D5 7047A5");
-        inputDemo.add("0C0ADD 050B 1981 7059E5 7009D6 7028BD_FFFFC8");
-        inputDemo.add("0C0AF7 050A 1983_FFFFEB 7009F7 7028E8 70483A");
-        inputDemo.add("0C0AEB 0509 1982 705A14_FFFFEA 7028D8 704856");
-        inputDemo.add("0C0AFD 050A 1982 7059FE 700A3D_FFFFC4 704873");
-        inputDemo.add("0C0B07 050B 1981 705A29 700A77 702911_FFFFEE");
-        inputDemo.add("0C0B05 050A 1980_FFFFF4 700A98 702943 704881");
-        inputDemo.add("0C0AF1 0508 1982 705A52_FFFFEB 702947 704890");
-        inputDemo.add("0C0AEF 0507 1981 705A6A 700AF7_FFFFF5 704897");
-        inputDemo.add("0C0AFE 0508 1981 705A52 700B17 70297B_FFFFD9");
-        inputDemo.add("0C0B05 050A 1980_FFFFD5 700B30 7029AD 7048E1");
-        inputDemo.add("0C0AFD 0508 1980 705A65_FFFFD3 7029CE 7048D4");
-        inputDemo.add("0C0B07 0507 1980 705A95 700B9A_FFFFE5 7048DC");
+        inputDemo.add("0C0AD7 050A 1983 6FB007 6FAEB1 6FAD86 6FB500");
+        inputDemo.add("0BA3D9 050A 1911 6FB007 6FAEB1 6FAD86 6FB500");
+        inputDemo.add("0BA3D5 050A 190F 6FB007 6FAEB1 6FAD86 6FB500");
+        inputDemo.add("0C0AD7 050A 1983 6FB007 6FAEB1 6FAD86 6FB500");
+        inputDemo.add("0C0AD4 0509 1984 6FB007 6FAEB1 6FAD86 6FB500");
+        inputDemo.add("0C0ACC 050B 1982 6FB007 6FAEB1 6FAD86 6FB500");
+        inputDemo.add("0C0AD9 050A 1984 6FAD86 7008A3 7027D5 7047A5");
+        inputDemo.add("0C0ADD 050B 1981 7059E5 7009D6 7028BD 6FAD86");
+        inputDemo.add("0C0AF7 050A 1983 6FAD86 7009F7 7028E8 70483A");
+        inputDemo.add("0C0AEB 0509 1982 705A14 6FAD86 7028D8 704856");
+        inputDemo.add("0C0AFD 050A 1982 7059FE 700A3D 6FAD86 704873");
+        inputDemo.add("0C0B07 050B 1981 705A29 700A77 702911 6FAD86");
+        inputDemo.add("0C0B05 050A 1980 6FAD86 700A98 702943 704881");
+        inputDemo.add("0C0AF1 0508 1982 705A52 6FAD86 702947 704890");
+        inputDemo.add("0C0AEF 0507 1981 705A6A 700AF7 6FAD86 704897");
+        inputDemo.add("0C0AFE 0508 1981 705A52 700B17 70297B 6FAD86");
+        inputDemo.add("0C0B05 050A 1980 6FAD86 700B30 7029AD 7048E1");
+        inputDemo.add("0C0AFD 0508 1980 705A65 6FAD86 7029CE 7048D4");
+        inputDemo.add("0C0B07 0507 1980 705A95 700B9A 6FAD86 7048DC");
     }
 
     public String[] splitInput(String input) {
@@ -206,12 +209,18 @@ public class ValuesFragment extends Fragment {
     }
 
     public String calculateTemperature(int pos, String hexValue){
-        int intValue = Integer.parseInt(hexValue,16);
-        double xpt,ww;
-        ww = intValue/Integer.parseInt("800000",16)*1250;
-        ww = ww/1000-1;
-        wpt[pos] = ww;
-        xpt=(Math.sqrt(Math.pow(0.00390802, 2)+4*(-0.0000005802)*ww)-0.00390802)/2/(-0.0000005802);
+        long input = Long.parseLong(hexValue, 16);
+        double xpt, negg, ww;
+        rpt[pos] = (float) input/ (float) Long.parseLong("800000",16) * (float) eedefault.rnorm;
+        ww = rpt[pos]/eedefault.ptary[pos].rnull-1;
+        xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*eedefault.ptary[pos].beta*ww)-eedefault.ptary[pos].alfa)/2/eedefault.ptary[pos].beta;
+
+        if (xpt < 0) {
+            negg = Pt_C*(xpt - 100) * xpt;
+            xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*(negg + eedefault.ptary[pos].beta)*ww)-eedefault.ptary[pos].alfa)/2/(negg + eedefault.ptary[pos].beta);
+            negg = Pt_C*(xpt - 100) * xpt;
+            xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*(negg + eedefault.ptary[pos].beta)*ww)-eedefault.ptary[pos].alfa)/2/(negg + eedefault.ptary[pos].beta);
+        }
 
         String tempValue = String.valueOf(xpt);
 
