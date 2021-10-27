@@ -42,6 +42,7 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.EnumSet;
 
 public class TerminalFragment extends Fragment implements ServiceConnection, SerialListener {
@@ -66,6 +67,8 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private boolean controlLinesEnabled = false;
     private boolean pendingNewline = false;
     private String newline = TextUtil.newline_crlf;
+
+    public ValuesFragment valuesFragment = new ValuesFragment();
 
     public TerminalFragment() {
         broadcastReceiver = new BroadcastReceiver() {
@@ -346,7 +349,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
     private void receive(byte[] data) {
         if(hexEnabled) {
-            receiveText.append(TextUtil.toHexString(data) + '\n');
         } else {
             String msg = new String(data);
             if(newline.equals(TextUtil.newline_crlf) && msg.length() > 0) {
@@ -361,11 +363,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                 pendingNewline = msg.charAt(msg.length() - 1) == '\r';
             }
             receiveText.append(TextUtil.toCaretString(msg, newline.length() != 0));
-            try {
-                //pressureText.append(TextUtil.calcPressure(msg, newline.length() != 0));
-            } catch (Exception e) {
-                Toast.makeText(service, "nemjo", Toast.LENGTH_SHORT).show();
-            }
         }
     }
 

@@ -87,12 +87,12 @@
     <TextView
         android:id="@+id/receive_text"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="200dp"
         android:layout_weight="1"
         android:freezesText="true"
-        android:gravity="bottom"
         android:scrollbars="vertical"
         android:textAppearance="@style/TextAppearance.AppCompat.Small" />
+
 
     <View
         android:layout_width="match_parent"

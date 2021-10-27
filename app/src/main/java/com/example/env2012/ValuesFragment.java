@@ -13,11 +13,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.gridlayout.widget.GridLayout;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -49,8 +51,6 @@ public class ValuesFragment extends Fragment {
 
     double shtmpr = 23.0;
     double shtrhslope = 1.0;
-    double shttmpoffs = 0;
-    double shttmpslope = 1.0;
     double[] rpt = {1090.0,1091.0,1092.0,1093.0};
     double[] wpt = {0.091,0.092,0.093,0.094};
 
@@ -182,6 +182,7 @@ public class ValuesFragment extends Fragment {
         int intValue = Integer.parseInt(hexValue, 16);
         double pressure = Math.round(intValue*0.98914);
         pressure = (pressure*0.00000000011087363-0.026687718)*pressure+121756.66;
+        pressure = pressure * eedefault.prslope + eedefault.proffs;
 
         intValue = (int) pressure;
 
@@ -192,20 +193,18 @@ public class ValuesFragment extends Fragment {
         int intValue = Integer.parseInt(hexValue, 16);
         double humidity = (0.000001595 * intValue + 0.0367) * intValue - 2.0468;
         humidity = (shtmpr - 25) * (0.01+ 0.00008 * intValue) + humidity;
-        humidity = humidity * shtrhslope + shttmpoffs;
+        humidity = humidity * eedefault.shtrhslope + eedefault.shtrhoffs;
 
         String humidityValue = String.valueOf((double)Math.round(humidity * 100d) / 100d);
 
-        return String.valueOf(humidityValue);
+        return humidityValue;
     }
 
     public String calculateShTemperature(String hexValue){
-        int intValue = Integer.parseInt(hexValue, 16);
-        double temp = (intValue/100-40.1) * shttmpslope + shttmpoffs;
+        int intValue = Integer.parseInt(hexValue,16);
+        double temp = (intValue/100-40.1)*eedefault.shttmpslope+eedefault.shttmpoffs;
 
-        String tempValue = String.valueOf((double)Math.round(temp * 100000d) / 100000d);
-
-        return tempValue;
+        return String.valueOf(temp);
     }
 
     public String calculateTemperature(int pos, String hexValue){
@@ -226,4 +225,5 @@ public class ValuesFragment extends Fragment {
 
         return tempValue;
     }
+
 }
