@@ -19,14 +19,40 @@ import androidx.fragment.app.Fragment;
 import androidx.gridlayout.widget.GridLayout;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class ValuesFragment extends Fragment {
+
+    final double Pt_C = -4.183e-12;
+
+    byte byary[] = new byte[65531];
+    byte nyolcbajt[] = new byte[8];
+    double fpvect[] = new double[8001];
+    char tident[] = new char[8];
+    String Tpswd[] = new String[8];
+
+    //CONST
+    boolean vanconsol = false;
+    boolean demomode = false;
+    String cr = "#13" + "#10";
+    String demofilnam = "EDemoRom.env";
+    Teeprom eedefault = new Teeprom();
+    TptParms tptParms = new TptParms();
+    int pressvalid = 0;
+    int shttmpvalid = 0;
+    int ptvalid[] = new int[4];
+    long ptlong[] = new long[4];
+    long ptzr[] = new long[4];
+
+    //-----------------------------------------------------------------
 
     double shtmpr = 23.0;
     double shtrhslope = 1.0;
     double shttmpoffs = 0;
     double shttmpslope = 1.0;
+    double[] rpt = {1090.0,1091.0,1092.0,1093.0};
+    double[] wpt = {0.091,0.092,0.093,0.094};
 
     Button startButton;
     GridLayout gridLayout;
@@ -63,6 +89,32 @@ public class ValuesFragment extends Fragment {
         huSensTTextView = view.findViewById(R.id.husenstValueTextView);
         fillDemoList();
 
+        // eedefault inicializalas
+        for (int i = 0; i < 4; i++){
+            tptParms.rnull = 1000 + i;  tptParms.beta = -5.802e-7f; tptParms.alfa = 3.90802e-3f;
+            eedefault.ptary[i] = tptParms;
+        }
+        eedefault.rnorm = 1250;
+        eedefault.proffs = 0;
+        eedefault.prslope = 1;
+        eedefault.shtrhoffs=0;
+        eedefault.shtrhslope=1.0f;
+        eedefault.shttmpoffs=0;
+        eedefault.shttmpslope=1.0f;
+        eedefault.equipid[0] = '2'; eedefault.equipid[1] = '#'; eedefault.equipid[2] = 'E'; eedefault.equipid[3] = 'n';
+        eedefault.equipid[4] = 'v'; eedefault.equipid[5] = '_'; eedefault.equipid[6] = 'C'; eedefault.equipid[7] = '!';
+        eedefault.humcaldat = Long.parseLong("20100101",16);
+        eedefault.ptcaldat = Long.parseLong("20100322",16);
+        eedefault.prescaldat = Long.parseLong("20100323",16);
+        eedefault.crc0 = Long.parseLong("1244E263",16);
+
+        //ptvalid inicializalas
+        Arrays.fill(ptvalid,0);
+        //ptlong inicializalas
+        Arrays.fill(ptlong,Long.parseLong("700000",16));
+        //ptzr inicializalas
+        Arrays.fill(ptzr,0);
+
         return view;
     }
 
@@ -76,7 +128,8 @@ public class ValuesFragment extends Fragment {
                     splitInput(inputDemo.get(stepper));
                     pressureTextView.setText(calculatePressure(splittedValues[0]));
                     humidityTextView.setText(calculateHumidity(splittedValues[1]));
-                    temp1TextView.setText(calculateTemperature(splittedValues[2]));
+                    huSensTTextView.setText(calculateShTemperature(splittedValues[2]));
+                    temp1TextView.setText(calculateTemperature(0,splittedValues[3]));
                     stepper++;
                 } else {
                     stepper = 0;
@@ -143,11 +196,24 @@ public class ValuesFragment extends Fragment {
         return String.valueOf(humidityValue);
     }
 
-    public String calculateTemperature(String hexValue){
+    public String calculateShTemperature(String hexValue){
         int intValue = Integer.parseInt(hexValue, 16);
         double temp = (intValue/100-40.1) * shttmpslope + shttmpoffs;
 
         String tempValue = String.valueOf((double)Math.round(temp * 100000d) / 100000d);
+
+        return tempValue;
+    }
+
+    public String calculateTemperature(int pos, String hexValue){
+        int intValue = Integer.parseInt(hexValue,16);
+        double xpt,ww;
+        ww = intValue/Integer.parseInt("800000",16)*1250;
+        ww = ww/1000-1;
+        wpt[pos] = ww;
+        xpt=(Math.sqrt(Math.pow(0.00390802, 2)+4*(-0.0000005802)*ww)-0.00390802)/2/(-0.0000005802);
+
+        String tempValue = String.valueOf(xpt);
 
         return tempValue;
     }
