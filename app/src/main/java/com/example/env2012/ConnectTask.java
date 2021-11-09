@@ -8,14 +8,7 @@ public class ConnectTask extends AsyncTask<String, String, TcpClient> {
     protected TcpClient doInBackground(String... message) {
 
         //we create a TCPClient object
-        TcpClient mTcpClient = new TcpClient(new TcpClient.OnMessageReceived() {
-            @Override
-            //here the messageReceived method is implemented
-            public void messageReceived(String message) {
-                //this method calls the onProgressUpdate
-                publishProgress(message);
-            }
-        });
+        TcpClient mTcpClient = new TcpClient();
         mTcpClient.run();
 
         return null;
