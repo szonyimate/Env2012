@@ -1,6 +1,5 @@
 package com.example.env2012;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -122,7 +121,7 @@ public class DevicesFragment extends ListFragment {
             return true;
         } else if (id == R.id.tcp) {
             try {
-                Intent intent = new Intent(this.getActivity(), TcpFragment.class);
+                Intent intent = new Intent(this.getActivity(), TcpActivity.class);
                 startActivity(intent);
             } catch (Exception e) {
                 e.printStackTrace();

@@ -1,52 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    >
+    <ListView android:id="@+id/list"
+        android:layout_width="fill_parent"
+        android:layout_height="0dip"
+        android:layout_weight="1"
+        android:transcriptMode="alwaysScroll"
+        android:cacheColorHint="#00000000"
+        android:listSelector="@android:color/transparent"/>
 
-    <EditText
-        android:id="@+id/serverIpText"
-        android:layout_width="match_parent"
+    <LinearLayout android:id="@+id/footer"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="SERVER IP" />
+        android:orientation="horizontal"
+        android:gravity="bottom">
 
-    <EditText
-        android:id="@+id/serverPortText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="textPersonName"
-        android:text="SERVER PORT" />
+        <EditText android:inputType="textMultiLine|textNoSuggestions"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:id="@+id/editText"
+            android:layout_weight="1"/>
 
-    <TextView
-        android:id="@+id/responseText"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="1" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <EditText
-            android:id="@+id/inputText"
-            android:layout_width="wrap_content"
+        <!-- send button -->
+        <Button android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:ems="10"
-            android:inputType="textPersonName"
-            android:singleLine="true" />
-
-        <Button
-            android:id="@+id/sendButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="sendRequest"
-            android:text="Send" />
+            android:id="@+id/send_button"
+            android:layout_gravity="center_vertical"
+            android:text="send" />
 
     </LinearLayout>
 </LinearLayout>

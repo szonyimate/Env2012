@@ -32,7 +32,7 @@
                 android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
                 android:resource="@xml/usb_device_filter" />
         </activity>
-        <activity android:label="@string/app_name" android:name="TcpFragment"/>
+        <activity android:label="@string/app_name" android:name=".TcpActivity"/>
         <service android:name=".SerialService" />
     </application>
 
