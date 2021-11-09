@@ -1,8 +1,10 @@
 package com.example.env2012;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
@@ -114,6 +116,14 @@ public class DevicesFragment extends ListFragment {
             try {
                 Fragment fragment = new ValuesFragment();
                 getFragmentManager().beginTransaction().replace(R.id.fragment, fragment, "terminal").addToBackStack(null).commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return true;
+        } else if (id == R.id.tcp) {
+            try {
+                Intent intent = new Intent(this.getActivity(), TcpFragment.class);
+                startActivity(intent);
             } catch (Exception e) {
                 e.printStackTrace();
             }

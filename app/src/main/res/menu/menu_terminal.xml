@@ -29,4 +29,9 @@
         android:id="@+id/listValues"
         android:title="List Values"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/tcp"
+        android:title="TCP"
+        app:showAsAction="never" />
 </menu>

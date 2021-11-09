@@ -9,4 +9,7 @@
     <item
         android:id="@+id/listValues"
         android:title="List Values" />
+    <item
+        android:id="@+id/tcp"
+        android:title="TCP" />
 </menu>
