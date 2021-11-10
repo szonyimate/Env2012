@@ -28,6 +28,11 @@ public class TcpActivity extends AppCompatActivity {
     private ArrayList<String> arrayList;
     private TcpListAdapter mAdapter;
     private TcpClient mTcpClient;
+    private EditText ipText;
+    private EditText portText;
+
+    public String serverIp;
+    public int serverPort;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -37,14 +42,25 @@ public class TcpActivity extends AppCompatActivity {
         arrayList = new ArrayList<>();
 
         final EditText editText = (EditText) findViewById(R.id.editText);
+        ipText = (EditText) findViewById(R.id.ipText);
+        portText = (EditText) findViewById(R.id.portText);
         Button send = (Button) findViewById(R.id.send_button);
+        Button connect = (Button) findViewById(R.id.connectButton);
 
         //relate the listView from java to the one created in xml
         mList = (ListView) findViewById(R.id.list);
         mAdapter = new TcpListAdapter(this, arrayList);
         mList.setAdapter(mAdapter);
 
-        new ConnectTask().execute("");
+        connect.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                serverIp = ipText.getText().toString();
+                serverPort = Integer.parseInt(portText.getText().toString());
+
+                new ConnectTask().execute("");
+            }
+        });
 
         send.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -164,7 +180,8 @@ public class TcpActivity extends AppCompatActivity {
         protected TcpClient doInBackground(String... message) {
 
             //we create a TCPClient object and
-            mTcpClient = new TcpClient(new TcpClient.OnMessageReceived() {
+            mTcpClient = new TcpClient(serverIp, serverPort,new TcpClient.OnMessageReceived() {
+
                 @Override
                 //here the messageReceived method is implemented
                 public void messageReceived(String message) {
@@ -180,6 +197,7 @@ public class TcpActivity extends AppCompatActivity {
         @Override
         protected void onProgressUpdate(String... values) {
             super.onProgressUpdate(values);
+
             Log.d("test", "response" + values[0]);
             //in the arrayList we add the messaged received from server
             arrayList.add(values[0]);

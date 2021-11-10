@@ -14,8 +14,8 @@ import java.net.Socket;
 
 public class TcpClient {
 
-    public String SERVER_IP = "192.168.1.127";
-    public int SERVER_PORT = 2013;
+    public String SERVER_IP = "";
+    public int SERVER_PORT = 0;
 
     // message to send to the server
     private String mServerMessage;
@@ -29,7 +29,9 @@ public class TcpClient {
     private BufferedReader mBufferIn;
 
     // Constructor
-    public TcpClient(OnMessageReceived listener) {
+    public TcpClient(String serverIP, int serverPort, OnMessageReceived listener) {
+        SERVER_IP = serverIP;
+        SERVER_PORT = serverPort;
         mMessageListener = listener;
     }
 
@@ -85,7 +87,7 @@ public class TcpClient {
                     mServerMessage = new String(buffer).substring(0, charsRead);
                     if (mServerMessage != null && mMessageListener != null) {
                         mMessageListener.messageReceived(mServerMessage);}
-                    mServerMessage = null;
+                    //mServerMessage = null;
                 }
                 Log.e("RESPONSE FROM SERVER", "S: Received Message: '" + mServerMessage + "'");
             } catch (Exception e) {
