@@ -24,7 +24,7 @@ public class TcpClient {
     // server will continue running while this is true
     private boolean mRun = false;
     // used to send messages
-    private DataOutputStream mBufferOut;
+    private PrintWriter mBufferOut;
     // used to read messages from the server
     private BufferedReader mBufferIn;
 
@@ -38,9 +38,9 @@ public class TcpClient {
     public void sendMessage(String message) {
         if (mBufferOut != null) {
             try {
-                mBufferOut.writeBytes(message);
+                mBufferOut.write(message);
                 mBufferOut.flush();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -57,7 +57,7 @@ public class TcpClient {
             try {
                 mBufferOut.flush();
                 mBufferOut.close();
-            } catch (IOException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -76,14 +76,13 @@ public class TcpClient {
             Log.e("TCP Client", "C: Connecting...");
             Socket socket = new Socket(serverAddr, SERVER_PORT);
             try {
-                mBufferOut = new DataOutputStream(socket.getOutputStream());
+                mBufferOut = new PrintWriter(new DataOutputStream(socket.getOutputStream()));
                 Log.e("TCP Client", "C: Sent.");
                 mBufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 int charsRead = 0; char[] buffer = new char[1024]; //choose your buffer size if you need other than 1024
 
                 while (mRun) {
                     charsRead = mBufferIn.read(buffer);
-                    Thread.sleep(200);
                     mServerMessage = new String(buffer).substring(0, charsRead);
                     if (mServerMessage != null && mMessageListener != null) {
                         mMessageListener.messageReceived(mServerMessage);}
