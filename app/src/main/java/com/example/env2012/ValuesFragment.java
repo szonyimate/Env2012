@@ -121,7 +121,7 @@ public class ValuesFragment extends Fragment {
     @Override
     public void onViewCreated(View view, Bundle savedInstanceState) {
 
-        countDownTimer = new CountDownTimer(60100, 1000) {
+        countDownTimer = new CountDownTimer(600100, 500) {
             @Override
             public void onTick(long millisUntilFinished) {
                 if (stepper < inputDemo.size()){

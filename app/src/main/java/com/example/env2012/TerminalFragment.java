@@ -43,7 +43,9 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 public class TerminalFragment extends Fragment implements ServiceConnection, SerialListener {
 
@@ -59,8 +61,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private ControlLines controlLines;
     private TextUtil.HexWatcher hexWatcher;
 
-    private TextView pressureText;
-
     private Connected connected = Connected.False;
     private boolean initialStart = true;
     private boolean hexEnabled = false;
@@ -69,6 +69,8 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private String newline = TextUtil.newline_crlf;
 
     public ValuesFragment valuesFragment = new ValuesFragment();
+    public List<String> lines = new ArrayList<String>();
+    String line = new String();
 
     public TerminalFragment() {
         broadcastReceiver = new BroadcastReceiver() {
@@ -348,6 +350,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     }
 
     private void receive(byte[] data) {
+
         if(hexEnabled) {
         } else {
             String msg = new String(data);
@@ -359,8 +362,17 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                     Editable edt = receiveText.getEditableText();
                     if (edt != null && edt.length() > 1)
                         edt.replace(edt.length() - 2, edt.length(), "");
+                    lines.add(line);
+                    line = "";
+
+                    try {
+                        Toast.makeText(service, lines.get(lines.size() - 1), Toast.LENGTH_SHORT).show();
+                    } catch (Exception e) {
+                        Toast.makeText(service, e.getMessage(), Toast.LENGTH_LONG).show();
+                    }
                 }
                 pendingNewline = msg.charAt(msg.length() - 1) == '\r';
+                line += msg;
             }
             receiveText.append(TextUtil.toCaretString(msg, newline.length() != 0));
         }
