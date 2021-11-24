@@ -65,4 +65,3 @@ public class TcpListAdapter extends BaseAdapter {
 
     }
 }
-

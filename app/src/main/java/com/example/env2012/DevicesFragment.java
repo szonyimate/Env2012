@@ -29,6 +29,7 @@ import java.util.Locale;
 
 public class DevicesFragment extends ListFragment {
 
+    // This class is used to display available devices
     static class ListItem {
         UsbDevice device;
         int port;
@@ -164,7 +165,7 @@ public class DevicesFragment extends ListFragment {
             args.putInt("baud", baudRate);
             Fragment fragment = new TerminalFragment();
             fragment.setArguments(args);
-            getFragmentManager().beginTransaction().replace(R.id.fragment, fragment, "terminal").addToBackStack(null).commit();
+            getFragmentManager().beginTransaction().replace(R.id.fragment, fragment, "values").addToBackStack(null).commit();
         }
     }
 

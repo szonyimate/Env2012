@@ -73,11 +73,11 @@ public class TcpClient {
 
         try {
             InetAddress serverAddr = InetAddress.getByName(SERVER_IP);
-            Log.e("TCP Client", "C: Connecting...");
+            //Log.e("TCP Client", "C: Connecting...");
             Socket socket = new Socket(serverAddr, SERVER_PORT);
             try {
-                mBufferOut = new PrintWriter(new DataOutputStream(socket.getOutputStream()));
-                Log.e("TCP Client", "C: Sent.");
+                mBufferOut = new PrintWriter(socket.getOutputStream());
+                //Log.e("TCP Client", "C: Sent.");
                 mBufferIn = new BufferedReader(new InputStreamReader(socket.getInputStream()));
                 int charsRead = 0; char[] buffer = new char[1024]; //choose your buffer size if you need other than 1024
 
@@ -86,16 +86,16 @@ public class TcpClient {
                     mServerMessage = new String(buffer).substring(0, charsRead);
                     if (mServerMessage != null && mMessageListener != null) {
                         mMessageListener.messageReceived(mServerMessage);}
-                    //mServerMessage = null;
+                    mServerMessage = null;
+
                 }
-                Log.e("RESPONSE FROM SERVER", "S: Received Message: '" + mServerMessage + "'");
+
             } catch (Exception e) {
-                Log.e("TCP", "S: Error", e);
+                //Log.e("TCP", "S: Error", e);
             } finally {
                 //the socket must be closed. It is not possible to reconnect to this socket
                 // after it is closed, which means a new socket instance has to be created.
                 socket.close();
-                Log.e("-------------- >>", "Close socket " );
             }
 
         } catch (Exception e) {

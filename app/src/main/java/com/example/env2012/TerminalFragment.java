@@ -13,6 +13,7 @@ import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbDeviceConnection;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -27,6 +28,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +37,7 @@ import android.widget.ToggleButton;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.gridlayout.widget.GridLayout;
 
 import com.hoho.android.usbserial.driver.SerialTimeoutException;
 import com.hoho.android.usbserial.driver.UsbSerialDriver;
@@ -44,6 +47,7 @@ import com.hoho.android.usbserial.driver.UsbSerialProber;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 
@@ -56,8 +60,58 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private UsbSerialPort usbSerialPort;
     private SerialService service;
 
-    private TextView receiveText;
-    private TextView sendText;
+    //------------------------------------
+
+    final double Pt_C = -4.183e-12;
+
+    byte byary[] = new byte[65531];
+    byte nyolcbajt[] = new byte[8];
+    double fpvect[] = new double[8001];
+    char tident[] = new char[8];
+    String Tpswd[] = new String[8];
+
+    //CONST
+    boolean vanconsol = false;
+    boolean demomode = false;
+    String cr = "#13" + "#10";
+    String demofilnam = "EDemoRom.env";
+    Teeprom eedefault = new Teeprom();
+    TptParms tptParms = new TptParms();
+    int pressvalid = 0;
+    int shttmpvalid = 0;
+    int ptvalid[] = new int[4];
+    long ptlong[] = new long[4];
+    long ptzr[] = new long[4];
+
+    double shtmpr = 23.0;
+    double shtrhslope = 1.0;
+    double[] rpt = {1090.0,1091.0,1092.0,1093.0};
+    double[] wpt = {0.091,0.092,0.093,0.094};
+
+    Button connectButton;
+    Button startButton;
+    Button stopButton;
+    GridLayout gridLayout;
+
+    TextView pressureTextView;
+    TextView temp1TextView;
+    TextView temp2TextView;
+    TextView temp3TextView;
+    TextView temp4TextView;
+    TextView humidityTextView;
+    TextView huSensTTextView;
+
+    TextView lineTextView;
+
+    CountDownTimer countDownTimer;
+
+    String[] splittedValues;
+    int stepper = 0;
+
+    //------------------------------------
+
+    //private TextView receiveText;
+    //private TextView sendText;
     private ControlLines controlLines;
     private TextUtil.HexWatcher hexWatcher;
 
@@ -69,7 +123,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     private String newline = TextUtil.newline_crlf;
 
     public ValuesFragment valuesFragment = new ValuesFragment();
-    public List<String> lines = new ArrayList<String>();
+    public List<String> lines;
     String line = new String();
 
     public TerminalFragment() {
@@ -174,6 +228,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
      */
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        /*
         View view = inflater.inflate(R.layout.fragment_terminal, container, false);
         receiveText = view.findViewById(R.id.receive_text);                          // TextView performance decreases with number of spans
         receiveText.setTextColor(getResources().getColor(R.color.colorRecieveText)); // set as default color to reduce number of spans
@@ -188,7 +243,110 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         View sendBtn = view.findViewById(R.id.send_btn);
         sendBtn.setOnClickListener(v -> send(sendText.getText().toString()));
         controlLines = new ControlLines(view);
+         */
+        View view = inflater.inflate(R.layout.fragment_values, container, false);
+
+        lines = new ArrayList<String>();
+
+        connectButton = view.findViewById(R.id.connectButton);
+        connectButton.setOnClickListener(v -> send("A1X"));
+
+        stopButton = view.findViewById(R.id.stopButton);
+        stopButton.setOnClickListener(v -> send("A2X"));
+
+        gridLayout = view.findViewById(R.id.gridLayout);
+
+        temp1TextView = view.findViewById(R.id.t1ValueTextView);
+        temp2TextView = view.findViewById(R.id.t2ValueTextView);
+        temp3TextView = view.findViewById(R.id.t3ValueTextView);
+        temp4TextView = view.findViewById(R.id.t4ValueTextView);
+        pressureTextView = view.findViewById(R.id.pressureValueTextView);
+        humidityTextView = view.findViewById(R.id.humidityValueTextView);
+        huSensTTextView = view.findViewById(R.id.husenstValueTextView);
+
+        lineTextView = view.findViewById(R.id.lineTextView);
+
+        // eedefault inicializalas
+        for (int i = 0; i < 4; i++){
+            tptParms.rnull = 1000 + i;  tptParms.beta = -5.802e-7f; tptParms.alfa = 3.90802e-3f;
+            eedefault.ptary[i] = tptParms;
+        }
+        eedefault.rnorm = 1250;
+        eedefault.proffs = 0;
+        eedefault.prslope = 1;
+        eedefault.shtrhoffs=0;
+        eedefault.shtrhslope=1.0f;
+        eedefault.shttmpoffs=0;
+        eedefault.shttmpslope=1.0f;
+        eedefault.equipid[0] = '2'; eedefault.equipid[1] = '#'; eedefault.equipid[2] = 'E'; eedefault.equipid[3] = 'n';
+        eedefault.equipid[4] = 'v'; eedefault.equipid[5] = '_'; eedefault.equipid[6] = 'C'; eedefault.equipid[7] = '!';
+        eedefault.humcaldat = Long.parseLong("20100101",16);
+        eedefault.ptcaldat = Long.parseLong("20100322",16);
+        eedefault.prescaldat = Long.parseLong("20100323",16);
+        eedefault.crc0 = Long.parseLong("1244E263",16);
+
+        //ptvalid inicializalas
+        Arrays.fill(ptvalid,0);
+        //ptlong inicializalas
+        Arrays.fill(ptlong,Long.parseLong("700000",16));
+        //ptzr inicializalas
+        Arrays.fill(ptzr,0);
+
+
         return view;
+    }
+
+    public String[] splitInput(String input) {
+        splittedValues = input.split(" |\\_");
+        return splittedValues;
+    }
+
+    public String calculatePressure(String hexValue){
+        int intValue = Integer.parseInt(hexValue, 16);
+        double pressure = Math.round(intValue*0.98914);
+        pressure = (pressure*0.00000000011087363-0.026687718)*pressure+121756.66;
+        pressure = pressure * eedefault.prslope + eedefault.proffs;
+
+        intValue = (int) pressure;
+
+        return String.valueOf(intValue);
+    }
+
+    public String calculateHumidity(String hexValue){
+        int intValue = Integer.parseInt(hexValue, 16);
+        double humidity = (0.000001595 * intValue + 0.0367) * intValue - 2.0468;
+        humidity = (shtmpr - 25) * (0.01+ 0.00008 * intValue) + humidity;
+        humidity = humidity * eedefault.shtrhslope + eedefault.shtrhoffs;
+
+        String humidityValue = String.valueOf((double)Math.round(humidity * 100d) / 100d);
+
+        return humidityValue;
+    }
+
+    public String calculateShTemperature(String hexValue){
+        int intValue = Integer.parseInt(hexValue,16);
+        double temp = (intValue/100-40.1)*eedefault.shttmpslope+eedefault.shttmpoffs;
+
+        return String.valueOf(temp);
+    }
+
+    public String calculateTemperature(int pos, String hexValue){
+        long input = Long.parseLong(hexValue, 16);
+        double xpt, negg, ww;
+        rpt[pos] = (float) input/ (float) Long.parseLong("800000",16) * (float) eedefault.rnorm;
+        ww = rpt[pos]/eedefault.ptary[pos].rnull-1;
+        xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*eedefault.ptary[pos].beta*ww)-eedefault.ptary[pos].alfa)/2/eedefault.ptary[pos].beta;
+
+        if (xpt < 0) {
+            negg = Pt_C*(xpt - 100) * xpt;
+            xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*(negg + eedefault.ptary[pos].beta)*ww)-eedefault.ptary[pos].alfa)/2/(negg + eedefault.ptary[pos].beta);
+            negg = Pt_C*(xpt - 100) * xpt;
+            xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*(negg + eedefault.ptary[pos].beta)*ww)-eedefault.ptary[pos].alfa)/2/(negg + eedefault.ptary[pos].beta);
+        }
+
+        String tempValue = String.valueOf(xpt);
+
+        return tempValue;
     }
 
     @Override
@@ -202,7 +360,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.clear) {
-            receiveText.setText("");
+            //receiveText.setText("");
             return true;
         } else if (id == R.id.newline) {
             String[] newlineNames = getResources().getStringArray(R.array.newline_names);
@@ -216,14 +374,14 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             });
             builder.create().show();
             return true;
-        } else if (id == R.id.hex) {
+        } /* else if (id == R.id.hex) {
             hexEnabled = !hexEnabled;
             sendText.setText("");
             hexWatcher.enable(hexEnabled);
             sendText.setHint(hexEnabled ? "HEX mode" : "");
             item.setChecked(hexEnabled);
             return true;
-        } else if (id == R.id.controlLines) {
+        } */else if (id == R.id.controlLines) {
             controlLinesEnabled = !controlLinesEnabled;
             item.setChecked(controlLinesEnabled);
             if (controlLinesEnabled) {
@@ -340,7 +498,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             }
             SpannableStringBuilder spn = new SpannableStringBuilder(msg + '\n');
             spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorSendText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            receiveText.append(spn);
+            //receiveText.append(spn);
             service.write(data);
         } catch (SerialTimeoutException e) {
             status("write timeout: " + e.getMessage());
@@ -350,7 +508,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     }
 
     private void receive(byte[] data) {
-
         if(hexEnabled) {
         } else {
             String msg = new String(data);
@@ -359,29 +516,44 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                 msg = msg.replace(TextUtil.newline_crlf, TextUtil.newline_lf);
                 // special handling if CR and LF come in separate fragments
                 if (pendingNewline && msg.charAt(0) == '\n') {
-                    Editable edt = receiveText.getEditableText();
+
+                    lines.add(line.substring(3,line.length()-2));
+
+                    if (lines.size() > 2) {
+                        try {
+                            splitInput(lines.get(lines.size()-1));
+                            pressureTextView.setText(calculatePressure(splittedValues[0]));
+                            humidityTextView.setText(calculateHumidity(splittedValues[1]));
+                            huSensTTextView.setText(calculateShTemperature(splittedValues[2]));
+                            temp1TextView.setText(calculateTemperature(0,splittedValues[3]));
+                            temp2TextView.setText(calculateTemperature(1,splittedValues[4]));
+                            temp3TextView.setText(calculateTemperature(2,splittedValues[5]));
+                            temp4TextView.setText(calculateTemperature(3,splittedValues[6]));
+                        } catch (Exception e) {
+                            Toast.makeText(service, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                        }
+
+
+                    }
+
+                    /*
+                    Editable edt = lineTextView.getEditableText();
                     if (edt != null && edt.length() > 1)
                         edt.replace(edt.length() - 2, edt.length(), "");
-                    lines.add(line);
-                    line = "";
 
-                    try {
-                        Toast.makeText(service, lines.get(lines.size() - 1), Toast.LENGTH_SHORT).show();
-                    } catch (Exception e) {
-                        Toast.makeText(service, e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
+                     */
+                    line = "";
                 }
                 pendingNewline = msg.charAt(msg.length() - 1) == '\r';
-                line += msg;
             }
-            receiveText.append(TextUtil.toCaretString(msg, newline.length() != 0));
+            line += TextUtil.toCaretString(msg, newline.length() != 0).toString();
         }
     }
 
     void status(String str) {
         SpannableStringBuilder spn = new SpannableStringBuilder(str + '\n');
         spn.setSpan(new ForegroundColorSpan(getResources().getColor(R.color.colorStatusText)), 0, spn.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        receiveText.append(spn);
+        //receiveText.append(spn);
     }
 
     /*
@@ -413,7 +585,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     }
 
     class ControlLines {
-        private static final int refreshInterval = 200; // msec
+        private static final int refreshInterval = 500; // msec
 
         private final Handler mainLooper;
         private final Runnable runnable;
