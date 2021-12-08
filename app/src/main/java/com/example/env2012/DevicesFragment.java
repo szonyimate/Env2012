@@ -112,14 +112,6 @@ public class DevicesFragment extends ListFragment {
             });
             builder.create().show();
             return true;
-        } else if (id == R.id.listValues) {
-            try {
-                Fragment fragment = new ValuesFragment();
-                getFragmentManager().beginTransaction().replace(R.id.fragment, fragment, "terminal").addToBackStack(null).commit();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return true;
         } else if (id == R.id.tcp) {
             try {
                 Intent intent = new Intent(this.getActivity(), TcpActivity.class);

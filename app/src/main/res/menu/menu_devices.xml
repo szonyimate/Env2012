@@ -7,9 +7,6 @@
         android:id="@+id/baud_rate"
         android:title="Baud rate" />
     <item
-        android:id="@+id/listValues"
-        android:title="List Values" />
-    <item
         android:id="@+id/tcp"
         android:title="TCP" />
 </menu>

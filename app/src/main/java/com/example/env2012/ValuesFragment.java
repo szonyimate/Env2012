@@ -54,7 +54,6 @@ public class ValuesFragment extends Fragment {
     double[] rpt = {1090.0,1091.0,1092.0,1093.0};
     double[] wpt = {0.091,0.092,0.093,0.094};
 
-    Button startButton;
     GridLayout gridLayout;
 
     TextView pressureTextView;
@@ -74,9 +73,6 @@ public class ValuesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup parent, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_values, parent, false);
-
-        startButton = view.findViewById(R.id.startButton);
-        startButton.setOnClickListener(v -> startCalculations(pressureTextView));
 
         gridLayout = view.findViewById(R.id.gridLayout);
 

@@ -22,6 +22,7 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.method.ScrollingMovementMethod;
 import android.text.style.ForegroundColorSpan;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -89,7 +90,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     double[] wpt = {0.091,0.092,0.093,0.094};
 
     Button connectButton;
-    Button startButton;
     Button stopButton;
     GridLayout gridLayout;
 
@@ -114,6 +114,8 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     //private TextView sendText;
     private ControlLines controlLines;
     private TextUtil.HexWatcher hexWatcher;
+
+    double[] prevTemp = {0, 0, 0, 0};
 
     private Connected connected = Connected.False;
     private boolean initialStart = true;
@@ -264,8 +266,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         humidityTextView = view.findViewById(R.id.humidityValueTextView);
         huSensTTextView = view.findViewById(R.id.husenstValueTextView);
 
-        lineTextView = view.findViewById(R.id.lineTextView);
-
         // eedefault inicializalas
         for (int i = 0; i < 4; i++){
             tptParms.rnull = 1000 + i;  tptParms.beta = -5.802e-7f; tptParms.alfa = 3.90802e-3f;
@@ -337,14 +337,20 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         ww = rpt[pos]/eedefault.ptary[pos].rnull-1;
         xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*eedefault.ptary[pos].beta*ww)-eedefault.ptary[pos].alfa)/2/eedefault.ptary[pos].beta;
 
-        if (xpt < 0) {
+        if (xpt < 0 && prevTemp[pos] != 0) {
+
+            xpt = prevTemp[pos];
+            /*
             negg = Pt_C*(xpt - 100) * xpt;
             xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*(negg + eedefault.ptary[pos].beta)*ww)-eedefault.ptary[pos].alfa)/2/(negg + eedefault.ptary[pos].beta);
             negg = Pt_C*(xpt - 100) * xpt;
             xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*(negg + eedefault.ptary[pos].beta)*ww)-eedefault.ptary[pos].alfa)/2/(negg + eedefault.ptary[pos].beta);
+
+             */
         }
 
-        String tempValue = String.valueOf(xpt);
+        prevTemp[pos] = xpt;
+        String tempValue = String.valueOf((double)Math.round(xpt * 10000d) / 10000d);
 
         return tempValue;
     }
@@ -352,14 +358,14 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_terminal, menu);
-        menu.findItem(R.id.hex).setChecked(hexEnabled);
-        menu.findItem(R.id.controlLines).setChecked(controlLinesEnabled);
+        //menu.findItem(R.id.hex).setChecked(hexEnabled);
+        //menu.findItem(R.id.controlLines).setChecked(controlLinesEnabled);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.clear) {
+        /*if (id == R.id.clear) {
             //receiveText.setText("");
             return true;
         } else if (id == R.id.newline) {
@@ -381,7 +387,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
             sendText.setHint(hexEnabled ? "HEX mode" : "");
             item.setChecked(hexEnabled);
             return true;
-        } */else if (id == R.id.controlLines) {
+        } else if (id == R.id.controlLines) {
             controlLinesEnabled = !controlLinesEnabled;
             item.setChecked(controlLinesEnabled);
             if (controlLinesEnabled) {
@@ -408,9 +414,20 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                 status("Fragment creation failed: " + e.getMessage());
             }
             return true;
+            */
+
+        if (id == R.id.tcp) {
+            try {
+                Intent intent = new Intent(this.getActivity(), TcpActivity.class);
+                startActivity(intent);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return true;
         } else {
             return super.onOptionsItemSelected(item);
         }
+
     }
 
     /*
@@ -530,7 +547,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                             temp3TextView.setText(calculateTemperature(2,splittedValues[5]));
                             temp4TextView.setText(calculateTemperature(3,splittedValues[6]));
                         } catch (Exception e) {
-                            Toast.makeText(service, e.getLocalizedMessage(), Toast.LENGTH_SHORT).show();
+                            Log.i("Log", e.toString());
                         }
 
 
