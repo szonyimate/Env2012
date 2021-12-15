@@ -46,6 +46,8 @@ import com.hoho.android.usbserial.driver.UsbSerialPort;
 import com.hoho.android.usbserial.driver.UsbSerialProber;
 
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -127,6 +129,10 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     public ValuesFragment valuesFragment = new ValuesFragment();
     public List<String> lines;
     String line = new String();
+
+
+    float rnullH, betaH = -5.802e-7f, alfaH = 3.90802e-3f;
+    float ptaryH[] = new float[4];
 
     public TerminalFragment() {
         broadcastReceiver = new BroadcastReceiver() {
@@ -268,9 +274,14 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
         // eedefault inicializalas
         for (int i = 0; i < 4; i++){
-            tptParms.rnull = 1000 + i;  tptParms.beta = -5.802e-7f; tptParms.alfa = 3.90802e-3f;
+            tptParms.rnull = 1000 + (i * 10);  tptParms.beta = -5.802e-7f; tptParms.alfa = 3.90802e-3f;
             eedefault.ptary[i] = tptParms;
+
+            rnullH = 1000 + (i * 10);
+            ptaryH[i] = rnullH;
         }
+
+
         eedefault.rnorm = 1250;
         eedefault.proffs = 0;
         eedefault.prslope = 1;
@@ -309,7 +320,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
 
         intValue = (int) pressure;
 
-        return String.valueOf(intValue);
+        return String.valueOf(intValue) + "  Pa";
     }
 
     public String calculateHumidity(String hexValue){
@@ -318,7 +329,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         humidity = (shtmpr - 25) * (0.01+ 0.00008 * intValue) + humidity;
         humidity = humidity * eedefault.shtrhslope + eedefault.shtrhoffs;
 
-        String humidityValue = String.valueOf((double)Math.round(humidity * 100d) / 100d);
+        String humidityValue = String.format("%.2f", humidity) + "  %";
 
         return humidityValue;
     }
@@ -327,33 +338,38 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         int intValue = Integer.parseInt(hexValue,16);
         double temp = (intValue/100-40.1)*eedefault.shttmpslope+eedefault.shttmpoffs;
 
-        return String.valueOf(temp);
+        return String.format("%.2f", temp) + "  °C";
     }
 
     public String calculateTemperature(int pos, String hexValue){
         long input = Long.parseLong(hexValue, 16);
         double xpt, negg, ww;
         rpt[pos] = (float) input/ (float) Long.parseLong("800000",16) * (float) eedefault.rnorm;
-        ww = rpt[pos]/eedefault.ptary[pos].rnull-1;
+        //ww = rpt[pos]/eedefault.ptary[pos].rnull-1;
+        ww = rpt[pos]/ptaryH[pos] - 1;
         xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*eedefault.ptary[pos].beta*ww)-eedefault.ptary[pos].alfa)/2/eedefault.ptary[pos].beta;
+
 
         if (xpt < 0 && prevTemp[pos] != 0) {
 
             xpt = prevTemp[pos];
+
             /*
             negg = Pt_C*(xpt - 100) * xpt;
             xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*(negg + eedefault.ptary[pos].beta)*ww)-eedefault.ptary[pos].alfa)/2/(negg + eedefault.ptary[pos].beta);
             negg = Pt_C*(xpt - 100) * xpt;
             xpt = (Math.sqrt(Math.pow(eedefault.ptary[pos].alfa, 2)+4*(negg + eedefault.ptary[pos].beta)*ww)-eedefault.ptary[pos].alfa)/2/(negg + eedefault.ptary[pos].beta);
-
              */
+
         }
 
+
         prevTemp[pos] = xpt;
-        String tempValue = String.valueOf((double)Math.round(xpt * 10000d) / 10000d);
+        String tempValue = String.format("%.3f", xpt) + "  °C";
 
         return tempValue;
     }
+
 
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
@@ -496,6 +512,18 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
     }
 
     private void send(String str) {
+        if (str == "A1X") {
+            stopButton.setClickable(true);
+            stopButton.setVisibility(View.VISIBLE);
+            connectButton.setClickable(false);
+            connectButton.setVisibility(View.INVISIBLE);
+        } else if (str == "A2X") {
+            connectButton.setClickable(true);
+            connectButton.setVisibility(View.VISIBLE);
+            stopButton.setClickable(false);
+            stopButton.setVisibility(View.INVISIBLE);
+        }
+
         if(connected != Connected.True) {
             Toast.makeText(getActivity(), "not connected", Toast.LENGTH_SHORT).show();
             return;
@@ -522,6 +550,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
         } catch (Exception e) {
             onSerialIoError(e);
         }
+
     }
 
     private void receive(byte[] data) {
@@ -534,6 +563,7 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                 // special handling if CR and LF come in separate fragments
                 if (pendingNewline && msg.charAt(0) == '\n') {
 
+                    //Toast.makeText(service, line, Toast.LENGTH_SHORT).show();
                     lines.add(line.substring(3,line.length()-2));
 
                     if (lines.size() > 2) {
@@ -549,8 +579,6 @@ public class TerminalFragment extends Fragment implements ServiceConnection, Ser
                         } catch (Exception e) {
                             Log.i("Log", e.toString());
                         }
-
-
                     }
 
                     /*
